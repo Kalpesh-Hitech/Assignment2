@@ -116,6 +116,9 @@ def get_task(
     status: str | None = None,
     priority: str | None = None,
     overdue: bool = False,
+    starttitle:str|None=None,
+    search:str| None=None,
+    endtitle:str|None=None,
     db: Session = Depends(get_db),
 ):
     db_task = db.query(TaskDB).all()
@@ -123,6 +126,15 @@ def get_task(
     db_priority = []
     db_overdue = []
     db_pages = []
+    if starttitle:
+        db_title=db.query(TaskDB).filter(TaskDB.title.ilike(f"{starttitle}%"))
+        return db_title
+    if endtitle:
+        db_title=db.query(TaskDB).filter(TaskDB.title.ilike(f"%{endtitle}"))
+        return db_title
+    if search:
+        db_title_dec=db.query(TaskDB).filter((TaskDB.title.ilike(f"%{search}%")) | (TaskDB.description.ilike(f"%{search}%")))
+        return db_title_dec
     if page is not None and limit is not None:
         for i in range((page - 1) * limit, ((page - 1) * limit) + limit):
             db_pages.append(db_task[i])
@@ -142,7 +154,11 @@ def get_task(
             if task.priority == priority:
                 db_priority.append(task)
         return db_priority
-
+    # if title is not None:
+    #     for task in db_task:
+    #         if (task.title).startswith(title):
+    #             db_title.append(task)
+    #     return db_title
     return db_task
 
 
